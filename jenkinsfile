@@ -1,0 +1,31 @@
+pipeline{
+    agent any
+    stages{
+        stage ('Download'){
+            steps{
+                git'https://github.com/IntelliqDevops/maven12.git'
+            }
+        }
+        stage('Build'){
+            steps{
+                sh'mvn package'
+            }
+        }
+        stage('Deploy'){
+            steps{
+                deploy adapters: [tomcat9(alternativeDeploymentContext: '', credentialsId: '3a06cb18-173a-4fe4-8818-46f29f58f312', path: '', url: 'http://172.31.22.8:8080')], contextPath: 'testapp', war: '**/*.war'
+            }
+        }
+        stage('Test'){
+            steps{
+                git'https://github.com/IntelliqDevops/FunctionalTesting.git'
+                sh 'java -jar /var/lib/jenkins/workspace/Declarativepipeline1/testing.jar'
+            }
+        }
+        stage('monitor'){
+            steps{
+                deploy adapters: [tomcat9(alternativeDeploymentContext: '', credentialsId: '3a06cb18-173a-4fe4-8818-46f29f58f312', path: '', url: 'http://172.31.22.111:8080')], contextPath: 'prodapp', war: '**/*.war'
+            }
+        }
+    }
+}
